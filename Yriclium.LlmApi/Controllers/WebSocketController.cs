@@ -1,12 +1,8 @@
-using Yriclium.LlmApi.Middleware;
 using Yriclium.LlmApi.Models;
 using Yriclium.LlmApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 using System.Net.WebSockets;
 using System.Text;
-using System.Web;
 
 namespace Yriclium.LlmApi.Controllers {
     [Route("ws")]
@@ -19,6 +15,7 @@ namespace Yriclium.LlmApi.Controllers {
             this.context.Response.Headers.AccessControlAllowOrigin = "*";
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("message")]
         public async Task SendMessageFlow(
             [FromServices] StatelessChatService   chatService, 
