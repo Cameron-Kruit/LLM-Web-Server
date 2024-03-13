@@ -3,6 +3,7 @@ using Yriclium.LlmApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.WebSockets;
 using System.Text;
+using Yriclium.LlmApi.Middleware;
 
 namespace Yriclium.LlmApi.Controllers {
     [Route("ws")]
@@ -17,19 +18,21 @@ namespace Yriclium.LlmApi.Controllers {
 
         [ApiExplorerSettings(IgnoreApi = true)]
         [Route("message")]
-        public async Task SendMessageFlow(
+        public Task SendMessageFlow(
+            [FromQuery   ] string                 key,
             [FromServices] StatelessChatService   chatService, 
-            [FromServices] ConnectionStoreService connectionStore
-        ){
-            if (context.WebSockets.IsWebSocketRequest) {
-                connectionStore.AddConnection();
-                using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                await CommunicateWithLLM(webSocket, chatService);
-                connectionStore.RemoveConnection();
-            }
-            else
-                context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        }
+            [FromServices] ConnectionStoreService connectionStore,
+            [FromServices] APIKeyValidator        validator
+        ) => validator.WithApiKey(key, async () => {
+                if (context.WebSockets.IsWebSocketRequest) {
+                    connectionStore.AddConnection();
+                    using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    await CommunicateWithLLM(webSocket, chatService);
+                    connectionStore.RemoveConnection();
+                }
+                else
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            });
 
         private static async Task CommunicateWithLLM(WebSocket webSocket, StatelessChatService chatService) {
             await Send(webSocket, "Open to receiving messages");
