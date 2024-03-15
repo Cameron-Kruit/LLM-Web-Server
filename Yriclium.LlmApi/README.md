@@ -1,3 +1,19 @@
+# Interaction
+All endpoint require the query parameter `key` to equate to your configured API key.
+
+## API
+To learn about the REST API, spin up the app in development and go to the index page. You will see a Swagger UI for all the endpoints.
+
+`POST /api/instant/message` - Send a message and receive a response as soon as it's ready. The output is the complete response of the LLM.
+
+`POST /api/job/message` - Ask the LLM to generate a response to your message. The output is a job ID. You can also specify a webhook url which will be sent the prompt and the response through a POST request.
+
+You can keep track of your jobs using `GET api/job/status` and `GET api/job/response` with the query parameter `id` equating to your job ID.
+
+`Websocket /ws/message` - Works the same as `/api/instant/message` but through websocket protocol. Response will be a json containing `message` (the response) and `id` (to identify which query it's a response to).
+
+
+# Technical info
 ## Requirements
 - dotnet sdk 7.0.x installed
 
@@ -14,13 +30,8 @@ Webhook = {YOUR_WEBHOOK_URL}
 ```
 Though it was designed for a windows server, you could just as easily run it on a Linux server or host it locally if you know how.
 
-## Running on network
-If you want to run this on a local network (so people on the same wifi can use your stuff), find out your local/private IP. Then replace `localhost` in the commands below with your IP. Set up port forwarding on your router to serve it on your public IP. Purchase a domain and setup A records in your DNS settings to make the domain refer to your public IP.
-
-If you're on mac like me just run `ifconfig -l | xargs -n1 ipconfig getifaddr` to find your local IP.
-
-## running locally
-`ASPNETCORE_ENVIRONMENT=Development dotnet run --urls="http://localhost:5015" --project "{PATH}/Yriclium.LlmApi/Yriclium.LlmApi.csproj"`
+## running in development
+`ASPNETCORE_ENVIRONMENT=Development dotnet run --project "{PATH}/Yriclium.LlmApi/Yriclium.LlmApi.csproj"`
 
 ## running in production
 `dotnet run --project "{PATH}/Yriclium.LlmApi/Yriclium.LlmApi.csproj"` or `dotnet Yriclium.LlmApi.dll` if you've published the project.

@@ -21,7 +21,10 @@ namespace Yriclium.LlmApi.Services
 
         public async Task<string> SendAsync(MessageInput message) {
             // Console.WriteLine("prompt: " + message.Message); //useful for debugging only
-            var result = Session().ChatAsync(message.ToChatHistory(), new InferenceParams() { AntiPrompts = new string[] { "User:" } });
+            var result = Session().ChatAsync(message.ToChatHistory(), new InferenceParams() { 
+                MaxTokens   = message.MaxResponseLength,
+                AntiPrompts = new string[] { "User:" } 
+            });
             var sb     = new StringBuilder();
 
             await foreach (var r in result) {

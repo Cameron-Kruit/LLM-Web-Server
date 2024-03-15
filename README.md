@@ -1,5 +1,5 @@
 ﻿## run locally
-`dotnet run environment=Development urls="http://localhost:5015"`
+`dotnet run environment=Development`
 In production, set the environment to Production.
 
 ## build for deployment

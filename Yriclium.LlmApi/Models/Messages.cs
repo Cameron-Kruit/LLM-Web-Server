@@ -2,6 +2,11 @@
 using Yriclium.LlmApi.Services;
 namespace Yriclium.LlmApi.Models;
 
+public class MessagePayload {
+    public string? Id                { get; set; } //Unique identifier client can provide to correlate their response to their input 
+    public string  Message           { get; set; } = "";
+}
+
 public class HistoryInput {
     public class HistoryItem {
         public HistoryItem(string role, string content) {
@@ -13,8 +18,8 @@ public class HistoryInput {
     }
 }
 
-public class MessageInput {
-    public string Message { get; set; } = "";
+public class MessageInput : MessagePayload {
+    public int     MaxResponseLength { get; set; } = -1; //-1 is infinite till end
     public List<HistoryInput.HistoryItem> ToHistoryItems() => new(){new ("User", Message)};
     public ChatHistory ToChatHistory() {
         var h = new ChatHistory();

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.WebSockets;
 using System.Text;
 using Yriclium.LlmApi.Middleware;
+using Newtonsoft.Json;
 
 namespace Yriclium.LlmApi.Controllers {
     [Route("ws")]
@@ -34,35 +35,29 @@ namespace Yriclium.LlmApi.Controllers {
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
             });
 
+        //TODO: give connections unique IDs
         private static async Task CommunicateWithLLM(WebSocket webSocket, StatelessChatService chatService) {
             await Send(webSocket, "Open to receiving messages");
-            var open          = true;
             var inBuffer      = new byte[3000];
             await webSocket.ReceiveAsync(
                 new ArraySegment<byte>(inBuffer), 
                 CancellationToken.None
             );
-
-            while (open) {
-                var inMessage = Encoding.UTF8.GetString(inBuffer).TrimEnd(new char[] { (char)0 });;
-                Console.WriteLine(inBuffer.Length + " - " + inMessage.Length + " - " + inMessage);
-
-                if(inMessage.StartsWith("close")){
-                    open = false;
-                    Console.WriteLine("Closing connection...");
-                } else {
-                    var message = await chatService.SendAsync(new MessageInput() {
-                        Message = inMessage
-                    });
-                    await Send(webSocket, message);
-
-                    inBuffer      = new byte[3000];
-                    
-                    await webSocket.ReceiveAsync(
-                        new ArraySegment<byte>(inBuffer), 
-                        CancellationToken.None
-                    );
-                }
+            var           inString  = Encoding.UTF8.GetString(inBuffer).TrimEnd(new char[] { (char)0 });
+            MessageInput? inMessage = JsonConvert.DeserializeObject<MessageInput>(inString);
+            while (inMessage != null && !string.IsNullOrEmpty(inMessage.Message)) {
+                var message   = await chatService.SendAsync(inMessage);
+                await Send(webSocket, JsonConvert.SerializeObject(new MessagePayload(){
+                    Message = message,
+                    Id      = inMessage.Id
+                }));
+                inBuffer  = new byte[3000];
+                await webSocket.ReceiveAsync(
+                    new ArraySegment<byte>(inBuffer), 
+                    CancellationToken.None
+                );
+                inString  = Encoding.UTF8.GetString(inBuffer).TrimEnd(new char[] { (char)0 });
+                inMessage = JsonConvert.DeserializeObject<MessageInput>(inString);
             }
             await webSocket.CloseAsync(
                 WebSocketCloseStatus.NormalClosure,
