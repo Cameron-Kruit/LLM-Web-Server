@@ -10,6 +10,7 @@ builder.Services
     .AddEndpointsApiExplorer()
     .AddSwaggerGen()
     .AddSingleton<StatelessChatService>()
+    .AddSingleton<ApiKeyStore>()
     .AddSingleton<JobService>()
     .AddSingleton<ConnectionStoreService>()
     .AddSingleton<APIKeyValidator>()
@@ -29,6 +30,13 @@ if (app.Environment.IsDevelopment()) {
             options.RoutePrefix = string.Empty;
         });
 }
+
+// Lock all API and websocket endpoints behind the api key.
+app.UseWhen(context => 
+    context.Request.Path.StartsWithSegments("/api") || context.Request.Path.StartsWithSegments("/ws"), 
+    appBuilder => {
+        appBuilder.UseMiddleware<ApiKeyMiddleware>();
+});
 
 app
     .UseAuthorization()

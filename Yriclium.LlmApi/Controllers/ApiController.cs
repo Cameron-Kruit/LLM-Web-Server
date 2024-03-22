@@ -1,4 +1,3 @@
-using Yriclium.LlmApi.Middleware;
 using Yriclium.LlmApi.Models;
 using Yriclium.LlmApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,45 +15,40 @@ namespace Yriclium.LlmApi.Controllers {
         }
 
         [HttpPost("instant/message")]
-        public async Task<string> SendMessage(
+        public Task<string> SendMessage(
             [FromQuery]    string               key,
             [FromBody]     MessageInput         input, 
-            [FromServices] StatelessChatService chatService, 
-            [FromServices] APIKeyValidator      validator)
-        => await validator.WithApiKey(key, chatService.SendAsync(input));
+            [FromServices] StatelessChatService chatService)
+        => chatService.SendAsync(input);
 
         [HttpPost("job/message")]
         public string SendMessageJob(
             [FromQuery]    string               key,
             [FromBody]     MessageJobInput      input, 
             [FromServices] StatelessChatService chatService, 
-            [FromServices] JobService           jobService,
-            [FromServices] APIKeyValidator      validator) 
-        => validator.WithApiKey(key, jobService.PerformJob(jobService.SendMessage(chatService, input.Message, input.Webhook)));
+            [FromServices] JobService           jobService) 
+        => jobService.PerformJob(jobService.SendMessage(chatService, input.Message, input.Webhook));
         public record MessageJobInput{public MessageInput Message {get; set;} = new(); public string? Webhook {get; set;}}
 
         [HttpGet("job/status")]
         public string JobStatus(
             [FromQuery]    string               key,
             [FromQuery]    string               id, 
-            [FromServices] JobService           jobService,
-            [FromServices] APIKeyValidator      validator) 
-        => validator.WithApiKey(key, jobService.GetStatus(id).ToString());
+            [FromServices] JobService           jobService) 
+        => jobService.GetStatus(id).ToString();
 
         [HttpGet("job/response")]
         public string JobResponse(
             [FromQuery]    string               key,
             [FromQuery]    string               id, 
-            [FromServices] JobService           jobService,
-            [FromServices] APIKeyValidator      validator)
-        => validator.WithApiKey(key, jobService.GetResponse(id));
+            [FromServices] JobService           jobService)
+        => jobService.GetResponse(id);
 
         [HttpGet("job/queue")]
         public int JobQueue(
             [FromQuery]    string               key,
-            [FromServices] JobService           jobService,
-            [FromServices] APIKeyValidator      validator)
-        => validator.WithApiKey(key, jobService.QueueSize());
+            [FromServices] JobService           jobService)
+        => jobService.QueueSize();
 
         [HttpGet("health")]
         public bool Health() => true;
