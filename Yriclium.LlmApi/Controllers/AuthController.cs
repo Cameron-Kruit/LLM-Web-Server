@@ -6,18 +6,20 @@ namespace Yriclium.LlmApi.Controllers {
     [Route("auth")]
     public class LlmAuthController : ControllerBase {
         private readonly HttpContext    context;
-        public LlmAuthController(IHttpContextAccessor context) {
+        private readonly bool           useExternalKey;
+        public LlmAuthController(IHttpContextAccessor context, IConfiguration configuration) {
             if (context.HttpContext == null)
                 throw new Exception("Something went wrong creating the ApiController");
             this.context = context.HttpContext;
             this.context.Response.Headers.AccessControlAllowOrigin = "*";
+            useExternalKey = configuration.GetValue<bool?>("ExternalAuth") ?? false;
         }
         
-        [HttpGet("key")]
+        [HttpGet("key")]    //This key will be valid for 2 hours due to latency mitigations
         public string? Key(
             [FromQuery]    string          key,
             [FromServices] APIKeyValidator validator,
             [FromServices] ApiKeyStore     keyStore
-        ) => validator.WithApiKey(context, key, keyStore.GetApiKey());
+        ) => validator.WithApiKey(context, key, useExternalKey ? keyStore.GetApiKey() : "");
     }
 }
