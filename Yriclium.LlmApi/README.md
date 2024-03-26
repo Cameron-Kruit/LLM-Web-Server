@@ -56,3 +56,6 @@ with
 <!-- <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.10.0" /> -->
 <PackageReference Include="LLamaSharp.Backend.Cuda12" Version="0.10.0" />
 ```
+
+## persistence
+Jobs are stored in memory. They get lost when the app or server shuts down. If you want to save jobs, you should have an external app do so. Using webhooks you can update the entries in your database. I will write some functionalities which will execute pending jobs from your persistent storage later.
