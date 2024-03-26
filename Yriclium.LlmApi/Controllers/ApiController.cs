@@ -1,3 +1,4 @@
+#pragma warning disable IDE0060 //we include key on purpose so it shows in swagger UI
 using Yriclium.LlmApi.Models;
 using Yriclium.LlmApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -51,7 +52,7 @@ namespace Yriclium.LlmApi.Controllers {
         => jobService.QueueSize();
 
         [HttpGet("health")]
-        public bool Health() => true;
+        public bool Health([FromQuery] string key) => true;
 
         // An open job serves the same function as an open connection
         // even though in terms of networking, there is no open connection
@@ -62,6 +63,7 @@ namespace Yriclium.LlmApi.Controllers {
         // and should be refrained from being used.
         [HttpGet("connections")]
         public int Connections(
+            [FromQuery]    string                 key,
             [FromServices] JobService             jobService,
             [FromServices] ConnectionStoreService connectionStore
         ) => jobService.QueueSize() + connectionStore.Connections();
