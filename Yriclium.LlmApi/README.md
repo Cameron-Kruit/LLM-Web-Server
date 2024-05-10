@@ -4,6 +4,8 @@ Want no authentication on your endpoints? Omit the `ApiKey` field from your apps
 If you want API key authentication, set the `ApiKey` field to your desired API key in appsettings.yourenvironment.json.
 If you want some form of external authentication set the field `ExternalAuth` to `true`. This will generate a new API key every hour. Your auth server can retrieve this generated key from `GET /auth/key` using the `ApiKey` from appsettings. You can grant the generated keys to your authenticated users, and keep your `ApiKey` a secret between your auth server and the LLM server.
 
+*Recommended approach:* use API key authentication, have your API key only be known to your Auth server and your LLM server. Handle all user authentication and authorization logic on your auth server. When a user is authorized to use the LLM, use your auth server as a proxy so it mimicks the interface of the LLM API while using your own custom authentication protocol.
+
 All endpoints starting with `/api` or `/ws` require the query parameter `key` or the HTTP header `X-API-KEY` to equate to your configured API key or the generated key if you've got this configured. The endpoint `auth/key` also requires this query param or HTTP header.
 
 Besides using the built in key generator for external authentication, it might be wise to set up some sort IP whitelisting limitations on the auth endpoint if your setup allows for this. Another option is to keep this API open, set up a firewall that only allows your LLM server to communicate with your auth server, and then run a proxy on your auth server. Or you could fork this repo and build your own custom auth directly into the code base.
